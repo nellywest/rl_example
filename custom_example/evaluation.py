@@ -1,9 +1,6 @@
-import numpy as np
-
-
-def evaluate_parallel_env(env, policy_mapping_fn, PPOagent, num_episodes=10, max_steps=100):
+def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
     # Store total rewards for all agents across episodes
-    total_rewards = {agent: 0 for agent in env.possible_agents}
+    total_rewards = {agent_id: 0 for agent_id in env.possible_agents}
     
     # Loop over episodes
     for episode in range(num_episodes):
@@ -13,35 +10,35 @@ def evaluate_parallel_env(env, policy_mapping_fn, PPOagent, num_episodes=10, max
         observations, _ = env.reset()
         
         # Store rewards for this episode
-        episode_rewards = {agent: 0 for agent in env.agents}
+        episode_rewards = {agent_id: 0 for agent_id in env.agents}
         
         # Loop over steps in the episode
         for step in range(max_steps):
             actions = {}
             for agent_id, obs in observations.items():
                 policy_id = policy_mapping_fn(agent_id, None, None)
-                policy = PPOagent.get_policy(policy_id)
-                obs = np.array([obs])
-                action, state_out, info = policy.compute_actions(obs)
-                actions[agent] = action
+                policy = agent.get_policy(policy_id)
+                action, _, _ = policy.compute_single_action(obs)
+                actions[agent_id] = action
             
             # Step the environment with the actions
-            observations, rewards, dones, infos = env.step(actions)
+            observations, rewards, terminations, _, _ = env.step(actions)
+            env.render()
             
             # Accumulate rewards for each agent
-            for agent in env.agents:
-                episode_rewards[agent] += rewards[agent]
+            for agent_id in env.agents:
+                episode_rewards[agent_id] += rewards[agent_id]
                 
             # If all agents are done, break the loop
-            if all(dones.values()):
+            if all(terminations.values()):
                 break
         
         # Print rewards for the episode
         print(f"Episode {episode + 1} rewards: {episode_rewards}")
         
         # Add episode rewards to total rewards
-        for agent in env.agents:
-            total_rewards[agent] += episode_rewards[agent]
+        for agent_id in env.agents:
+            total_rewards[agent] += episode_rewards[agent_id]
     
     # Print the final total rewards after all episodes
     print("Evaluation complete.")

@@ -1,35 +1,18 @@
-from gymnasium.spaces import Discrete, MultiDiscrete
-from pettingzoo import ParallelEnv
-from copy import copy
+import functools
 import random
+import numpy as np
+from gymnasium.spaces import Box, Discrete
+from pettingzoo import ParallelEnv
 
 
 class CustomEnvironment(ParallelEnv):
-    """The metadata holds environment constants.
-
-    The "name" metadata allows the environment to be pretty printed.
-    """
-
+    """The metadata holds environment constants."""
     metadata = {
         "name": "custom_environment_v0",
     }
 
     def __init__(self):
-        """The init method takes in environment arguments.
-
-        Should define the following attributes:
-        - escape x and y coordinates
-        - guard x and y coordinates
-        - prisoner x and y coordinates
-        - timestamp
-        - possible_agents
-
-        Note: as of v1.18.1, the action_spaces and observation_spaces attributes are deprecated.
-        Spaces should be defined in the action_space() and observation_space() methods.
-        If these methods are not overridden, spaces will be inferred from self.observation_spaces/action_spaces, raising a warning.
-
-        These attributes should not be changed after initialization.
-        """
+        """Initialize environment constants and variables."""
         self.escape_y = None
         self.escape_x = None
         self.guard_y = None
@@ -40,62 +23,45 @@ class CustomEnvironment(ParallelEnv):
         self.possible_agents = ["prisoner", "guard"]
 
     def reset(self, seed=None, options=None):
-        """Reset set the environment to a starting point.
-
-        It needs to initialize the following attributes:
-        - agents
-        - timestamp
-        - prisoner x and y coordinates
-        - guard x and y coordinates
-        - escape x and y coordinates
-        - observation
-        - infos
-
-        And must set up the environment so that render(), step(), and observe() can be called without issues.
-        """
-        self.agents = copy(self.possible_agents)
+        """Reset the environment to the starting state."""
+        self.agents = self.possible_agents.copy()
         self.timestep = 0
 
+        # Initial positions of the agents
         self.prisoner_x = 0
         self.prisoner_y = 0
-
         self.guard_x = 6
         self.guard_y = 6
 
+        # Random escape position
         self.escape_x = random.randint(2, 5)
         self.escape_y = random.randint(2, 5)
 
+        # Observations are represented as a flat numpy array
         observations = {
-            a: (
-                self.prisoner_x + 7 * self.prisoner_y,
-                self.guard_x + 7 * self.guard_y,
-                self.escape_x + 7 * self.escape_y,
-            )
+            a: np.array([
+                self.prisoner_x,
+                self.prisoner_y,
+                self.guard_x,
+                self.guard_y,
+                self.escape_x,
+                self.escape_y
+            ])
             for a in self.agents
         }
 
-        # Get dummy infos. Necessary for proper parallel_to_aec conversion
+        # Dummy infos (not used in this example)
         infos = {a: {} for a in self.agents}
+
         return observations, infos
 
     def step(self, actions):
-        """Takes in an action for the current agent (specified by agent_selection).
-
-        Needs to update:
-        - prisoner x and y coordinates
-        - guard x and y coordinates
-        - terminations
-        - truncations
-        - rewards
-        - timestamp
-        - infos
-
-        And any internal state used by observe() or render()
-        """
+        """Perform actions and update the environment state."""
         # Execute actions
         prisoner_action = actions["prisoner"]
         guard_action = actions["guard"]
 
+        # Update prisoner position based on action
         if prisoner_action == 0 and self.prisoner_x > 0:
             self.prisoner_x -= 1
         elif prisoner_action == 1 and self.prisoner_x < 6:
@@ -105,6 +71,7 @@ class CustomEnvironment(ParallelEnv):
         elif prisoner_action == 3 and self.prisoner_y < 6:
             self.prisoner_y += 1
 
+        # Update guard position based on action
         if guard_action == 0 and self.guard_x > 0:
             self.guard_x -= 1
         elif guard_action == 1 and self.guard_x < 6:
@@ -132,13 +99,16 @@ class CustomEnvironment(ParallelEnv):
             truncations = {"prisoner": True, "guard": True}
         self.timestep += 1
 
-        # Get observations
+        # Get observations as numpy arrays
         observations = {
-            a: (
-                self.prisoner_x + 7 * self.prisoner_y,
-                self.guard_x + 7 * self.guard_y,
-                self.escape_x + 7 * self.escape_y,
-            )
+            a: np.array([
+                self.prisoner_x,
+                self.prisoner_y,
+                self.guard_x,
+                self.guard_y,
+                self.escape_x,
+                self.escape_y
+            ])
             for a in self.agents
         }
 
@@ -151,18 +121,24 @@ class CustomEnvironment(ParallelEnv):
         return observations, rewards, terminations, truncations, infos
 
     def render(self):
-        """Renders the environment."""
+        """Render the environment."""
         grid = np.full((7, 7), " ")
         grid[self.prisoner_y, self.prisoner_x] = "P"
         grid[self.guard_y, self.guard_x] = "G"
         grid[self.escape_y, self.escape_x] = "E"
         print(f"{grid} \n")
 
+    @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return MultiDiscrete([49, 49, 49])
+        """Define the observation space using Box."""
+        return Box(low=np.array([0, 0, 0, 0, 0, 0]), 
+                   high=np.array([6, 6, 6, 6, 6, 6]), 
+                   dtype=int)
 
+    @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return Discrete(4)
+        """Define the action space as a Discrete space."""
+        return Discrete(4)  # 4 possible actions: left, right, up, down
 
 
 def env_creator(args):

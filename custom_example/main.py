@@ -30,9 +30,9 @@ if __name__ == "__main__":
     if args.checkpoint:
         # Just evaluate!
 
-        PPOagent = PPO.from_checkpoint(args.checkpoint)
+        agent = PPO.from_checkpoint(args.checkpoint)
         env = env_creator({})
-        evaluate_parallel_env(env, policy_mapping_fn, PPOagent, num_episodes=10, max_steps=100)
+        evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100)
     else:
         # Train!
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         tune.run(
             "PPO",
             name="PPO",
-            stop={"timesteps_total": 10000},
+            stop={"timesteps_total": 100000},
             checkpoint_freq=1,
             storage_path="~/ray_results/" + env_name,
             config=config.to_dict(),
