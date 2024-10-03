@@ -2,6 +2,9 @@
 
 Install kubectl (>= 1.23), Helm (>= v3.4), Kind, and Docker, as described in https://docs.ray.io/en/latest/cluster/kubernetes/getting-started/raycluster-quick-start.html.
 
+You also need to follow the requirements of PettingZoo: https://github.com/Farama-Foundation/PettingZoo
+
+So right now: cmake, swig and python 3.8 to 3.11
 
 ## Run code in a python environment
 

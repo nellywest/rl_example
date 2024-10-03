@@ -6,11 +6,11 @@ from ray.rllib.algorithms.ppo import PPOConfig
 from ray import tune
 from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.models import ModelCatalog
-from custom_model import CustomModel
-from custom_env import env_creator
-from evaluation import evaluate_parallel_env
 from pathlib import Path
 
+from reinforcement_learning.models.custom_model import CustomModel
+from reinforcement_learning.environments.prisoner_env import env_creator
+from reinforcement_learning.scripts.evaluate import evaluate_parallel_env
 
 parser = argparse.ArgumentParser(description ='Train or evaluate custom example')
 parser.add_argument("--checkpoint", type=Path)
