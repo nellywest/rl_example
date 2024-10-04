@@ -1,4 +1,4 @@
-from reinforcement_learning.scripts.train import train_model
+from ronja.scripts.train import main as train_main
 
 if __name__ == "__main__":
-    train_model()
+    train_main()

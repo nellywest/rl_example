@@ -5,13 +5,14 @@ def parse_requirements(filename):
         return f.read().splitlines()
 
 setup(
-    name='reinforcement_learning_project',
+    name='ronja',
     version='0.1',
-    packages=find_packages(),
+    packages=find_packages() + ['prisoner_pettingzoo_env'],
+    package_data={'prisoner_pettingzoo_env': ['*']},
     install_requires=parse_requirements('requirements.txt'),
     entry_points={
         'console_scripts': [
-            'train=reinforcement_learning.scripts.train:train_model',
+            'ronja=ronja.scripts.train:main',
         ],
     },
 )

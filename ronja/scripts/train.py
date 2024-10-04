@@ -9,32 +9,27 @@ from ray.rllib.models import ModelCatalog
 from pathlib import Path
 import yaml
 
-from reinforcement_learning.models.custom_model import CustomModel
+from ronja.models.custom_model import CustomModel
 from prisoner_pettingzoo_env.prisoner_env import env_creator
-from reinforcement_learning.scripts.evaluate import evaluate_parallel_env
+from ronja.scripts.evaluate import evaluate_parallel_env
 
-# Load configuration from YAML file
-with open('reinforcement_learning/configs/train_config.yaml', 'r') as file:
-    train_config = yaml.safe_load(file)
-
-parser = argparse.ArgumentParser(description='Train or evaluate custom example')
-parser.add_argument("--checkpoint", type=Path)
-
+def load_yaml(file_path):
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
 
 def policy_mapping_fn(agent_id, episode, worker, **kwargs):
     return f"{agent_id}_policy"
 
-def train_model():
-    args = parser.parse_args()
-
+def train_model(env_config, train_config, checkpoint=None):
+    # Use the provided train_config directly
     env_name = train_config['environment']
     register_env(env_name, lambda config: ParallelPettingZooEnv(env_creator(config)))
     ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
     
-    if args.checkpoint:
+    if checkpoint:
         # Just evaluate!
 
-        PPOagent = PPO.from_checkpoint(args.checkpoint)
+        PPOagent = PPO.from_checkpoint(checkpoint)
         env = env_creator({})
         evaluate_parallel_env(env, policy_mapping_fn, PPOagent, num_episodes=10, max_steps=100)
     else:
@@ -78,3 +73,18 @@ def train_model():
             storage_path=train_config['storage_path'],
             config=config.to_dict(),
         )
+
+def main():
+    parser = argparse.ArgumentParser(description="Ronja training script")
+    parser.add_argument('-e', '--env', type=str, required=True, help="Path to environment YAML config")
+    parser.add_argument('-t', '--train', type=str, required=True, help="Path to training YAML config")
+    
+    args = parser.parse_args()
+    
+    env_config = load_yaml(args.env)
+    train_config = load_yaml(args.train)
+    
+    train_model(env_config, train_config)
+
+if __name__ == "__main__":
+    main()
