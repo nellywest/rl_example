@@ -85,10 +85,12 @@ class CustomEnvironment(ParallelEnv):
         terminations = {a: False for a in self.agents}
         rewards = {a: 0 for a in self.agents}
         if self.prisoner_x == self.guard_x and self.prisoner_y == self.guard_y:
+            print("Guard catches the prisoner!", self.timestep)
             rewards = {"prisoner": -1, "guard": 1}
             terminations = {a: True for a in self.agents}
 
         elif self.prisoner_x == self.escape_x and self.prisoner_y == self.escape_y:
+            print("Prisoner escapes!", self.timestep)
             rewards = {"prisoner": 1, "guard": -1}
             terminations = {a: True for a in self.agents}
 
@@ -115,6 +117,7 @@ class CustomEnvironment(ParallelEnv):
         # Get dummy infos (not used in this example)
         infos = {a: {} for a in self.agents}
 
+        # TO DO: This may lead to bugs?
         if any(terminations.values()) or all(truncations.values()):
             self.agents = []
 
