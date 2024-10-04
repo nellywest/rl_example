@@ -7,25 +7,29 @@ from ray import tune
 from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.models import ModelCatalog
 from pathlib import Path
+import yaml
 
 from reinforcement_learning.models.custom_model import CustomModel
-from reinforcement_learning.environments.prisoner_env import env_creator
+from prisoner_pettingzoo_env.prisoner_env import env_creator
 from reinforcement_learning.scripts.evaluate import evaluate_parallel_env
 
-parser = argparse.ArgumentParser(description ='Train or evaluate custom example')
+# Load configuration from YAML file
+with open('reinforcement_learning/configs/train_config.yaml', 'r') as file:
+    train_config = yaml.safe_load(file)
+
+parser = argparse.ArgumentParser(description='Train or evaluate custom example')
 parser.add_argument("--checkpoint", type=Path)
 
 
 def policy_mapping_fn(agent_id, episode, worker, **kwargs):
     return f"{agent_id}_policy"
 
-
-if __name__ == "__main__":
+def train_model():
     args = parser.parse_args()
 
-    env_name = "custom_env"
+    env_name = train_config['environment']
     register_env(env_name, lambda config: ParallelPettingZooEnv(env_creator(config)))
-    ModelCatalog.register_custom_model("CustomModel", CustomModel)
+    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
     
     if args.checkpoint:
         # Just evaluate!
@@ -43,10 +47,9 @@ if __name__ == "__main__":
 
         config = (
             PPOConfig()
-            .environment("custom_env")
-            .framework("torch")
+            .environment(train_config['environment'])
+            .framework(train_config['framework'])
             .multi_agent(
-                # (policy_cls, obs_space, act_space, config)
                 policies={
                     "prisoner_policy": (
                         None,
@@ -63,15 +66,15 @@ if __name__ == "__main__":
                 },
                 policy_mapping_fn=policy_mapping_fn
             )
-            .training(model={"custom_model": "CustomModel"})
+            .training(model={"custom_model": train_config['training']['model']['custom_model']})
             .resources(num_gpus=num_gpus)
         )
 
         tune.run(
             "PPO",
             name="PPO",
-            stop={"timesteps_total": 10000},
-            checkpoint_freq=1,
-            storage_path="~/ray_results/" + env_name,
+            stop={"timesteps_total": train_config['stop']['timesteps_total']},
+            checkpoint_freq=train_config['checkpoint_freq'],
+            storage_path=train_config['storage_path'],
             config=config.to_dict(),
         )

@@ -2,6 +2,7 @@ from gymnasium.spaces import Discrete, MultiDiscrete
 from pettingzoo import ParallelEnv
 from copy import copy
 import random
+import yaml
 
 
 class CustomEnvironment(ParallelEnv):
@@ -14,8 +15,8 @@ class CustomEnvironment(ParallelEnv):
         "name": "custom_environment_v0",
     }
 
-    def __init__(self):
-        """The init method takes in environment arguments.
+    def __init__(self, config_path="prisoner_pettingzoo_env/configs/custom_environment_v0.yaml"):
+        """The init method takes in environment arguments from a YAML configuration file.
 
         Should define the following attributes:
         - escape x and y coordinates
@@ -30,14 +31,18 @@ class CustomEnvironment(ParallelEnv):
 
         These attributes should not be changed after initialization.
         """
-        self.escape_y = None
-        self.escape_x = None
-        self.guard_y = None
-        self.guard_x = None
-        self.prisoner_y = None
-        self.prisoner_x = None
-        self.timestep = None
-        self.possible_agents = ["prisoner", "guard"]
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+
+        self.escape_y = config.get('escape_y', None)
+        self.escape_x = config.get('escape_x', None)
+        self.guard_y = config.get('guard_y', None)
+        self.guard_x = config.get('guard_x', None)
+        self.prisoner_y = config.get('prisoner_y', None)
+        self.prisoner_x = config.get('prisoner_x', None)
+        self.timestep = config.get('timestep', None)
+        self.possible_agents = config.get('possible_agents', ["prisoner", "guard"])
+        self.grid_size = config.get('grid_size', 7)
 
     def reset(self, seed=None, options=None):
         """Reset set the environment to a starting point.
@@ -59,17 +64,17 @@ class CustomEnvironment(ParallelEnv):
         self.prisoner_x = 0
         self.prisoner_y = 0
 
-        self.guard_x = 6
-        self.guard_y = 6
+        self.guard_x = self.grid_size - 1
+        self.guard_y = self.grid_size - 1
 
         self.escape_x = random.randint(2, 5)
         self.escape_y = random.randint(2, 5)
 
         observations = {
             a: (
-                self.prisoner_x + 7 * self.prisoner_y,
-                self.guard_x + 7 * self.guard_y,
-                self.escape_x + 7 * self.escape_y,
+                self.prisoner_x + self.grid_size * self.prisoner_y,
+                self.guard_x + self.grid_size * self.guard_y,
+                self.escape_x + self.grid_size * self.escape_y,
             )
             for a in self.agents
         }
@@ -98,20 +103,20 @@ class CustomEnvironment(ParallelEnv):
 
         if prisoner_action == 0 and self.prisoner_x > 0:
             self.prisoner_x -= 1
-        elif prisoner_action == 1 and self.prisoner_x < 6:
+        elif prisoner_action == 1 and self.prisoner_x < self.grid_size - 1:
             self.prisoner_x += 1
         elif prisoner_action == 2 and self.prisoner_y > 0:
             self.prisoner_y -= 1
-        elif prisoner_action == 3 and self.prisoner_y < 6:
+        elif prisoner_action == 3 and self.prisoner_y < self.grid_size - 1:
             self.prisoner_y += 1
 
         if guard_action == 0 and self.guard_x > 0:
             self.guard_x -= 1
-        elif guard_action == 1 and self.guard_x < 6:
+        elif guard_action == 1 and self.guard_x < self.grid_size - 1:
             self.guard_x += 1
         elif guard_action == 2 and self.guard_y > 0:
             self.guard_y -= 1
-        elif guard_action == 3 and self.guard_y < 6:
+        elif guard_action == 3 and self.guard_y < self.grid_size - 1:
             self.guard_y += 1
 
         # Check termination conditions
@@ -135,9 +140,9 @@ class CustomEnvironment(ParallelEnv):
         # Get observations
         observations = {
             a: (
-                self.prisoner_x + 7 * self.prisoner_y,
-                self.guard_x + 7 * self.guard_y,
-                self.escape_x + 7 * self.escape_y,
+                self.prisoner_x + self.grid_size * self.prisoner_y,
+                self.guard_x + self.grid_size * self.guard_y,
+                self.escape_x + self.grid_size * self.escape_y,
             )
             for a in self.agents
         }
@@ -152,14 +157,14 @@ class CustomEnvironment(ParallelEnv):
 
     def render(self):
         """Renders the environment."""
-        grid = np.full((7, 7), " ")
+        grid = np.full((self.grid_size, self.grid_size), " ")
         grid[self.prisoner_y, self.prisoner_x] = "P"
         grid[self.guard_y, self.guard_x] = "G"
         grid[self.escape_y, self.escape_x] = "E"
         print(f"{grid} \n")
 
     def observation_space(self, agent):
-        return MultiDiscrete([49, 49, 49])
+        return MultiDiscrete([self.grid_size**2, self.grid_size**2, self.grid_size**2])
 
     def action_space(self, agent):
         return Discrete(4)
