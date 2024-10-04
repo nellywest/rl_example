@@ -6,6 +6,8 @@ You also need to follow the requirements of PettingZoo: https://github.com/Faram
 
 So right now: cmake, swig and python 3.8 to 3.11
 
+## Install gpu-acceleration (maybe, they just say support, but like, probably that means gpu-support): https://docs.ray.io/en/latest/ray-overview/installation.html#m1-mac-apple-silicon-support
+
 ## Run code in a python environment
 
 1. Create the environment:
