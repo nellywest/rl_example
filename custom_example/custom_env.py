@@ -1,7 +1,7 @@
 import functools
 import random
 import numpy as np
-from gymnasium.spaces import Box, Discrete
+from gymnasium.spaces import Box, Discrete, Dict
 from pettingzoo import ParallelEnv
 
 
@@ -37,17 +37,23 @@ class CustomEnvironment(ParallelEnv):
         self.escape_x = random.randint(2, 5)
         self.escape_y = random.randint(2, 5)
 
+        observation = np.array([
+            self.prisoner_x,
+            self.prisoner_y,
+            self.guard_x,
+            self.guard_y,
+            self.escape_x,
+            self.escape_y
+        ])
+
         # Observations are represented as a flat numpy array
         observations = {
-            a: np.array([
-                self.prisoner_x,
-                self.prisoner_y,
-                self.guard_x,
-                self.guard_y,
-                self.escape_x,
-                self.escape_y
-            ])
-            for a in self.agents
+            "prisoner": {
+                "observation": observation,
+                "action_mask": np.array([0, 1, 1, 0])},
+            "guard": {
+                "observation": observation,
+                "action_mask": np.array([1, 0, 0, 1])},
         }
 
         # Dummy infos (not used in this example)
@@ -81,6 +87,37 @@ class CustomEnvironment(ParallelEnv):
         elif guard_action == 3 and self.guard_y < 6:
             self.guard_y += 1
 
+        # Generate action masks
+        prisoner_action_mask = np.ones(4, dtype=np.int8)
+        if self.prisoner_x == 0:
+            prisoner_action_mask[0] = 0  # Block left movement
+        elif self.prisoner_x == 6:
+            prisoner_action_mask[1] = 0  # Block right movement
+        if self.prisoner_y == 0:
+            prisoner_action_mask[2] = 0  # Block down movement
+        elif self.prisoner_y == 6:
+            prisoner_action_mask[3] = 0  # Block up movement
+
+        guard_action_mask = np.ones(4, dtype=np.int8)
+        if self.guard_x == 0:
+            guard_action_mask[0] = 0
+        elif self.guard_x == 6:
+            guard_action_mask[1] = 0
+        if self.guard_y == 0:
+            guard_action_mask[2] = 0
+        elif self.guard_y == 6:
+            guard_action_mask[3] = 0
+
+        # Action mask to prevent guard from going over escape cell
+        if self.guard_x - 1 == self.escape_x:
+            guard_action_mask[0] = 0
+        elif self.guard_x + 1 == self.escape_x:
+            guard_action_mask[1] = 0
+        if self.guard_y - 1 == self.escape_y:
+            guard_action_mask[2] = 0
+        elif self.guard_y + 1 == self.escape_y:
+            guard_action_mask[3] = 0
+
         # Check termination conditions
         terminations = {a: False for a in self.agents}
         rewards = {a: 0 for a in self.agents}
@@ -101,23 +138,30 @@ class CustomEnvironment(ParallelEnv):
             truncations = {"prisoner": True, "guard": True}
         self.timestep += 1
 
+        observation = np.array([
+            self.prisoner_x,
+            self.prisoner_y,
+            self.guard_x,
+            self.guard_y,
+            self.escape_x,
+            self.escape_y
+        ])
+
         # Get observations as numpy arrays
         observations = {
-            a: np.array([
-                self.prisoner_x,
-                self.prisoner_y,
-                self.guard_x,
-                self.guard_y,
-                self.escape_x,
-                self.escape_y
-            ])
-            for a in self.agents
+            "prisoner": {
+                "observation": observation,
+                "action_mask": prisoner_action_mask,
+            },
+            "guard": {
+                "observation": observation,
+                "action_mask": guard_action_mask},
         }
 
         # Get dummy infos (not used in this example)
         infos = {a: {} for a in self.agents}
 
-        # TO DO: This may lead to bugs?
+        # TO DO: This may lead to bugs
         if any(terminations.values()) or all(truncations.values()):
             self.agents = []
 
@@ -134,9 +178,10 @@ class CustomEnvironment(ParallelEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         """Define the observation space using Box."""
-        return Box(low=np.array([0, 0, 0, 0, 0, 0]), 
-                   high=np.array([6, 6, 6, 6, 6, 6]), 
-                   dtype=int)
+        return Dict({
+            'observation': Box(low=0, high=6, shape=(6,), dtype=np.int64),
+            'action_mask': Box(low=0, high=1, shape=(4,), dtype=np.int64)
+        })
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
