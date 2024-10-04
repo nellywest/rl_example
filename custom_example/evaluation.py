@@ -1,3 +1,6 @@
+import time
+
+
 def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
     # Store total rewards for all agents across episodes
     total_rewards = {agent_id: 0 for agent_id in env.possible_agents}
@@ -23,6 +26,9 @@ def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_st
             
             # Step the environment with the actions
             observations, rewards, terminations, truncations, _ = env.step(actions)
+
+            print(observations)
+            time.sleep(1)
             env.render()
 
             # Accumulate rewards for each agent
@@ -33,12 +39,16 @@ def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_st
             if any(terminations.values()) or all(truncations.values()):
                 break
         
+            time.sleep(1)
+
         # Print rewards for the episode
         print(f"Episode {episode + 1} rewards: {episode_rewards}")
         
         # Add episode rewards to total rewards
         for agent_id in env.possible_agents:
             total_rewards[agent_id] += episode_rewards[agent_id]
+
+        time.sleep(1)
     
     # Print the final total rewards after all episodes
     print("Evaluation complete.")

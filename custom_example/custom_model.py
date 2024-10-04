@@ -8,7 +8,7 @@ class CustomModel(TorchModelV2, nn.Module):
         nn.Module.__init__(self)
 
         self.model = nn.Sequential(
-            nn.Linear(6, 256),
+            nn.Linear(6, 256), # 6 neurons to match number of observations
             nn.ReLU(),
             nn.Linear(256, 512),
             nn.ReLU(),

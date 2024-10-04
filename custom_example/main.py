@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
         agent = PPO.from_checkpoint(args.checkpoint)
         env = env_creator({})
-        evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100)
+        evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
     else:
         # Train!
 
