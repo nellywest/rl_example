@@ -1,8 +1,6 @@
-# if you are using an AMD64-processor (most windows/linux computers)
-FROM rayproject/ray:2.36.0
-
-# if you are using an ARM64-processor (apple computers with M-chips)
-#FROM rayproject/ray:2.36.0-aarch64
+# Use a build argument to specify the base image
+ARG BASE_IMAGE=rayproject/ray:2.36.0
+FROM ${BASE_IMAGE}
 
 USER root
 

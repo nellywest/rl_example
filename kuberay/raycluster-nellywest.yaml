@@ -4,7 +4,7 @@ metadata:
   annotations:
     meta.helm.sh/release-name: raycluster
     meta.helm.sh/release-namespace: default
-  creationTimestamp: "2024-09-12T14:09:18Z"
+  creationTimestamp: "2024-09-18T09:21:23Z"
   generation: 1
   labels:
     app.kubernetes.io/instance: raycluster
@@ -12,8 +12,8 @@ metadata:
     helm.sh/chart: ray-cluster-1.1.1
   name: raycluster-kuberay
   namespace: default
-  resourceVersion: "111176"
-  uid: 796a02c5-1790-4a32-a5c1-593c12a95bf0
+  resourceVersion: "1989"
+  uid: c09231db-c22f-4b6c-9c2c-6b87ca9605fa
 spec:
   headGroupSpec:
     rayStartParams:
@@ -29,15 +29,15 @@ spec:
       spec:
         affinity: {}
         containers:
-        - image: agreatviktor/rlx-image:latest #The image we want to use
+        - image: nellywestman/ray-cluster-2
           imagePullPolicy: IfNotPresent
           name: ray-head
           resources:
             limits:
-              cpu: "1"
+              cpu: "4"
               memory: 4G
             requests:
-              cpu: "1"
+              cpu: "4"
               memory: 4G
           securityContext: {}
           volumeMounts:
@@ -49,11 +49,9 @@ spec:
         volumes:
         - emptyDir: {}
           name: log-volume
-        - emptyDir: {}
-          name: files-volume
   workerGroupSpecs:
   - groupName: workergroup
-    maxReplicas: 2
+    maxReplicas: 1
     minReplicas: 1
     numOfHosts: 1
     rayStartParams: {}
@@ -68,15 +66,15 @@ spec:
       spec:
         affinity: {}
         containers:
-        - image: agreatviktor/rlx-image:latest
+        - image: nellywestman/ray-cluster-2
           imagePullPolicy: IfNotPresent
           name: ray-worker
           resources:
             limits:
-              cpu: "1"
+              cpu: "4"
               memory: 2G
             requests:
-              cpu: "1"
+              cpu: "4"
               memory: 2G
           securityContext: {}
           volumeMounts:
@@ -88,12 +86,10 @@ spec:
         volumes:
         - emptyDir: {}
           name: log-volume
-        - emptyDir: {}
-          name: files-volume
 status:
   availableWorkerReplicas: 1
   desiredCPU: "2"
-  desiredGPU: "0"
+  desiredGPU: "1"
   desiredMemory: 3G
   desiredTPU: "0"
   desiredWorkerReplicas: 1
@@ -104,10 +100,9 @@ status:
     redis: "6379"
     serve: "8000"
   head:
-    podIP: 10.244.0.7
-    serviceIP: 10.96.161.95
-  lastUpdateTime: "2024-09-13T12:24:27Z"
-  maxWorkerReplicas: 2
+    podIP: 10.244.0.6
+    serviceIP: 10.96.227.93
+  lastUpdateTime: "2024-09-18T09:23:34Z"
+  maxWorkerReplicas: 3
   minWorkerReplicas: 1
   observedGeneration: 1
-  state: ready

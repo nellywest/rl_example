@@ -29,7 +29,7 @@ spec:
       spec:
         affinity: {}
         containers:
-        - image: agreatviktor/rlx-image:latest #The image we want to use
+        - image: {{DOCKER_USERNAME}}/rlx-image:latest #The image we want to use
           imagePullPolicy: IfNotPresent
           name: ray-head
           resources:
@@ -68,7 +68,7 @@ spec:
       spec:
         affinity: {}
         containers:
-        - image: agreatviktor/rlx-image:latest
+        - image: {{DOCKER_USERNAME}}/rlx-image:latest
           imagePullPolicy: IfNotPresent
           name: ray-worker
           resources:
