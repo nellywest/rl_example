@@ -1,0 +1,11 @@
+escape_y: 5
+escape_x: 5
+guard_y: 2
+guard_x: 2
+prisoner_y: 0
+prisoner_x: 0
+timestep: 0
+possible_agents:
+  - prisoner
+  - guard
+grid_size: 7

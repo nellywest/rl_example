@@ -1,4 +1,12 @@
 import time
+import argparse
+from train import load_yaml, policy_mapping_fn
+from ray.tune import register_env
+from ray.rllib.models import ModelCatalog
+from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
+from prisoner_pettingzoo_env.prisoner_env import env_creator
+from ray.rllib.algorithms.ppo import PPO
+from ronja.models.custom_model import CustomModel
 
 
 def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
@@ -53,3 +61,27 @@ def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_st
     # Print the final total rewards after all episodes
     print("Evaluation complete.")
     print(f"Total rewards after {num_episodes} episodes: {total_rewards}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Ronja evaluation script")
+    parser.add_argument('-e', '--env', type=str, required=True, help="Path to environment YAML config")
+    parser.add_argument('-t', '--train', type=str, required=True, help="Path to training YAML config")
+    parser.add_argument('-c', '--checkpoint', type=str, required=True, help="Path to training YAML config")
+
+    args = parser.parse_args()
+    
+    env_config = load_yaml(args.env)
+    train_config = load_yaml(args.train)
+    
+    env_name = train_config['environment']
+    register_env(env_name, lambda config: ParallelPettingZooEnv(env_creator(config)))
+    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
+
+    agent = PPO.from_checkpoint(args.checkpoint)
+    env = env_creator({})
+    evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
+
+
+if __name__ == "__main__":
+    main()

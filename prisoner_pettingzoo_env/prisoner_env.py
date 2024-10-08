@@ -3,6 +3,9 @@ import random
 import numpy as np
 from gymnasium.spaces import Box, Discrete, Dict
 from pettingzoo import ParallelEnv
+from copy import copy
+import random
+import yaml
 
 
 class CustomEnvironment(ParallelEnv):
@@ -11,16 +14,34 @@ class CustomEnvironment(ParallelEnv):
         "name": "custom_environment_v0",
     }
 
-    def __init__(self):
-        """Initialize environment constants and variables."""
-        self.escape_y = None
-        self.escape_x = None
-        self.guard_y = None
-        self.guard_x = None
-        self.prisoner_y = None
-        self.prisoner_x = None
-        self.timestep = None
-        self.possible_agents = ["prisoner", "guard"]
+    def __init__(self, config_path="prisoner_pettingzoo_env/configs/custom_environment_v0.yaml"):
+        """The init method takes in environment arguments from a YAML configuration file.
+
+        Should define the following attributes:
+        - escape x and y coordinates
+        - guard x and y coordinates
+        - prisoner x and y coordinates
+        - timestamp
+        - possible_agents
+
+        Note: as of v1.18.1, the action_spaces and observation_spaces attributes are deprecated.
+        Spaces should be defined in the action_space() and observation_space() methods.
+        If these methods are not overridden, spaces will be inferred from self.observation_spaces/action_spaces, raising a warning.
+
+        These attributes should not be changed after initialization.
+        """
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+
+        self.escape_y = config.get('escape_y', None)
+        self.escape_x = config.get('escape_x', None)
+        self.guard_y = config.get('guard_y', None)
+        self.guard_x = config.get('guard_x', None)
+        self.prisoner_y = config.get('prisoner_y', None)
+        self.prisoner_x = config.get('prisoner_x', None)
+        self.timestep = config.get('timestep', None)
+        self.possible_agents = config.get('possible_agents', ["prisoner", "guard"])
+        self.grid_size = config.get('grid_size', 7)
 
     def reset(self, seed=None, options=None):
         """Reset the environment to the starting state."""
@@ -30,8 +51,9 @@ class CustomEnvironment(ParallelEnv):
         # Initial positions of the agents
         self.prisoner_x = 0
         self.prisoner_y = 0
-        self.guard_x = 6
-        self.guard_y = 6
+
+        self.guard_x = self.grid_size - 1
+        self.guard_y = self.grid_size - 1
 
         # Random escape position
         self.escape_x = random.randint(2, 5)
@@ -70,21 +92,21 @@ class CustomEnvironment(ParallelEnv):
         # Update prisoner position based on action
         if prisoner_action == 0 and self.prisoner_x > 0:
             self.prisoner_x -= 1
-        elif prisoner_action == 1 and self.prisoner_x < 6:
+        elif prisoner_action == 1 and self.prisoner_x < self.grid_size - 1:
             self.prisoner_x += 1
         elif prisoner_action == 2 and self.prisoner_y > 0:
             self.prisoner_y -= 1
-        elif prisoner_action == 3 and self.prisoner_y < 6:
+        elif prisoner_action == 3 and self.prisoner_y < self.grid_size - 1:
             self.prisoner_y += 1
 
         # Update guard position based on action
         if guard_action == 0 and self.guard_x > 0:
             self.guard_x -= 1
-        elif guard_action == 1 and self.guard_x < 6:
+        elif guard_action == 1 and self.guard_x < self.grid_size - 1:
             self.guard_x += 1
         elif guard_action == 2 and self.guard_y > 0:
             self.guard_y -= 1
-        elif guard_action == 3 and self.guard_y < 6:
+        elif guard_action == 3 and self.guard_y < self.grid_size - 1:
             self.guard_y += 1
 
         # Generate action masks
@@ -168,8 +190,8 @@ class CustomEnvironment(ParallelEnv):
         return observations, rewards, terminations, truncations, infos
 
     def render(self):
-        """Render the environment."""
-        grid = np.full((7, 7), " ")
+        """Renders the environment."""
+        grid = np.full((self.grid_size, self.grid_size), " ")
         grid[self.prisoner_y, self.prisoner_x] = "P"
         grid[self.guard_y, self.guard_x] = "G"
         grid[self.escape_y, self.escape_x] = "E"

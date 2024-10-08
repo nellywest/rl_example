@@ -1,0 +1,13 @@
+escape_y: null
+escape_x: null
+guard_y: null
+guard_x: null
+prisoner_y: null
+prisoner_x: null
+timestep: null
+possible_agents:
+  - prisoner
+  - guard
+grid_size: 7
+
+
