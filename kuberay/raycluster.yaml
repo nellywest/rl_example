@@ -40,17 +40,9 @@ spec:
               cpu: "1"
               memory: 4G
           securityContext: {}
-          volumeMounts:
-          - mountPath: /tmp/ray
-            name: log-volume
         imagePullSecrets: []
         nodeSelector: {}
         tolerations: []
-        volumes:
-        - emptyDir: {}
-          name: log-volume
-        - emptyDir: {}
-          name: files-volume
   workerGroupSpecs:
   - groupName: workergroup
     maxReplicas: 2
@@ -79,17 +71,9 @@ spec:
               cpu: "1"
               memory: 2G
           securityContext: {}
-          volumeMounts:
-          - mountPath: /tmp/ray
-            name: log-volume
         imagePullSecrets: []
         nodeSelector: {}
         tolerations: []
-        volumes:
-        - emptyDir: {}
-          name: log-volume
-        - emptyDir: {}
-          name: files-volume
 status:
   availableWorkerReplicas: 1
   desiredCPU: "2"

@@ -1,5 +1,5 @@
 # Use a build argument to specify the base image
-ARG BASE_IMAGE=rayproject/ray:2.36.0
+ARG BASE_IMAGE=rayproject/ray:2.36.0-aarch64
 FROM ${BASE_IMAGE}
 
 USER root
@@ -18,3 +18,9 @@ RUN pip install torch==2.4.1 \
                 gputil==1.4.0
 
 WORKDIR /app
+
+COPY . /app
+
+RUN pip install -e .
+
+RUN which ronja || { echo "ronja not found in PATH"; exit 1; }

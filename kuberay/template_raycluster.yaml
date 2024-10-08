@@ -29,7 +29,7 @@ spec:
       spec:
         affinity: {}
         containers:
-        - image: agreatviktor/test-ray-image:latest #The image we want to use
+        - image: {{DOCKER_USERNAME}}/rlx-image:latest #The image we want to use
           imagePullPolicy: IfNotPresent
           name: ray-head
           resources:
@@ -40,17 +40,9 @@ spec:
               cpu: "1"
               memory: 4G
           securityContext: {}
-          volumeMounts:
-          - mountPath: /tmp/ray
-            name: log-volume
         imagePullSecrets: []
         nodeSelector: {}
         tolerations: []
-        volumes:
-        - emptyDir: {}
-          name: log-volume
-        - emptyDir: {}
-          name: files-volume
   workerGroupSpecs:
   - groupName: workergroup
     maxReplicas: 2
@@ -68,7 +60,7 @@ spec:
       spec:
         affinity: {}
         containers:
-        - image: agreatviktor/test-ray-image:latest
+        - image: {{DOCKER_USERNAME}}/rlx-image:latest
           imagePullPolicy: IfNotPresent
           name: ray-worker
           resources:
@@ -79,17 +71,9 @@ spec:
               cpu: "1"
               memory: 2G
           securityContext: {}
-          volumeMounts:
-          - mountPath: /tmp/ray
-            name: log-volume
         imagePullSecrets: []
         nodeSelector: {}
         tolerations: []
-        volumes:
-        - emptyDir: {}
-          name: log-volume
-        - emptyDir: {}
-          name: files-volume
 status:
   availableWorkerReplicas: 1
   desiredCPU: "2"

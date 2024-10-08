@@ -1,11 +1,9 @@
-# Run the cluster from the yaml file    
-kubectl apply -f raycluster.yaml
+#!/usr/bin/env zsh
 
-# Wait for the cluster to be ready
-sleep 120
+# Apply the RayCluster configuration
+kubectl apply -f kuberay/raycluster.yaml
 
-#Optional, show the pods in the cluster, -w shows the pods as they are added to the cluster
-# kubectl get pods -w
+wait 120
 
 # Store the head pod name in a variable
 export HEAD_POD=$(kubectl get pods --selector=ray.io/node-type=head -o custom-columns=POD:metadata.name --no-headers)

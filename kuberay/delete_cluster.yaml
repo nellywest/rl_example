@@ -2,4 +2,4 @@
 kill $(ps aux | grep '[k]ubectl port-forward service/raycluster-kuberay-head-svc 8265:8265' | awk '{print $2}')
 
 # Delete the cluster
-kubectl delete -f ray-cluster.yaml
+kubectl delete -f kuberay/raycluster.yaml
