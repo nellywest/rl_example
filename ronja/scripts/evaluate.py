@@ -9,7 +9,7 @@ from ray.rllib.algorithms.ppo import PPO
 from ronja.models.custom_model import PrisonerGuardModel
 
 
-def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
+def evaluate_model(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
     # Store total rewards for all agents across episodes
     total_rewards = {agent_id: 0 for agent_id in env.possible_agents}
     
@@ -82,7 +82,7 @@ def main():
 
     agent = PPO.from_checkpoint(args.checkpoint)
 
-    evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
+    evaluate_model(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 from torch import nn
 
 
-class CustomModel(TorchModelV2, nn.Module):
+class PrisonerGuardModel(TorchModelV2, nn.Module):
     def __init__(self, obs_space, act_space, num_outputs, *args, **kwargs):
         TorchModelV2.__init__(self, obs_space, act_space, num_outputs, *args, **kwargs)
         nn.Module.__init__(self)
