@@ -75,11 +75,13 @@ def main():
     train_config = load_yaml(args.train)
     
     env_name = train_config['environment']
-    register_env(env_name, lambda config: ParallelPettingZooEnv(env_creator(config)))
+    register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
+    env = env_creator(env_config)
+
     ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
 
     agent = PPO.from_checkpoint(args.checkpoint)
-    env = env_creator({})
+
     evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
 
 

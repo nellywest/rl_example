@@ -20,9 +20,9 @@ def policy_mapping_fn(agent_id, episode, worker, **kwargs):
 
 
 def train_model(env_config, train_config):
-    # Use the provided train_config directly
     env_name = train_config['environment']
-    register_env(env_name, lambda config: ParallelPettingZooEnv(env_creator(config)))
+    register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
+
     ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
     
     ray.init()
@@ -38,14 +38,14 @@ def train_model(env_config, train_config):
             policies={
                 "prisoner_policy": (
                     None,
-                    env_creator({}).observation_space("prisoner"),
-                    env_creator({}).action_space("prisoner"),
+                    env_creator(env_config).observation_space("prisoner"),
+                    env_creator(env_config).action_space("prisoner"),
                     {},
                 ),
                 "guard_policy": (
                     None,
-                    env_creator({}).observation_space("guard"),
-                    env_creator({}).action_space("guard"),
+                    env_creator(env_config).observation_space("guard"),
+                    env_creator(env_config).action_space("guard"),
                     {},
                 ),
             },

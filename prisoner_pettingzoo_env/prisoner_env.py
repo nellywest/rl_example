@@ -3,18 +3,11 @@ import random
 import numpy as np
 from gymnasium.spaces import Box, Discrete, Dict
 from pettingzoo import ParallelEnv
-from copy import copy
 import random
-import yaml
 
 
 class CustomEnvironment(ParallelEnv):
-    """The metadata holds environment constants."""
-    metadata = {
-        "name": "custom_environment_v0",
-    }
-
-    def __init__(self, config_path="prisoner_pettingzoo_env/configs/custom_environment_v0.yaml"):
+    def __init__(self, config):
         """The init method takes in environment arguments from a YAML configuration file.
 
         Should define the following attributes:
@@ -30,9 +23,6 @@ class CustomEnvironment(ParallelEnv):
 
         These attributes should not be changed after initialization.
         """
-        with open(config_path, 'r') as file:
-            config = yaml.safe_load(file)
-
         self.escape_y = config.get('escape_y', None)
         self.escape_x = config.get('escape_x', None)
         self.guard_y = config.get('guard_y', None)
@@ -211,6 +201,6 @@ class CustomEnvironment(ParallelEnv):
         return Discrete(4)  # 4 possible actions: left, right, up, down
 
 
-def env_creator(args):
-    env = CustomEnvironment()
+def env_creator(env_config):
+    env = CustomEnvironment(env_config)
     return env
