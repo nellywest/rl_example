@@ -1,15 +1,14 @@
 import time
 import argparse
-from ray.tune import register_env
-from ray.rllib.models import ModelCatalog
-from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 from prisoner_pettingzoo_env.prisoner_env import env_creator
-from ray.rllib.algorithms.ppo import PPO
 from ronja.models.custom_model import PrisonerGuardModel
 from ronja.scripts.utils import policy_mapping_fn, load_yaml
+from ronja.models.custom_model import PrisonerGuardModel
+from ronja.scripts.utils import load_agent
 
 
-def evaluate_model(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
+def evaluate_model(agent, env, policy_mapping_fn, num_episodes=10, max_steps=100):
+
     # Store total rewards for all agents across episodes
     total_rewards = {agent_id: 0 for agent_id in env.possible_agents}
     
@@ -73,17 +72,11 @@ def main():
     
     env_config = load_yaml(args.env)
     train_config = load_yaml(args.train)
-    agent = PPO.from_checkpoint(args.checkpoint)
 
-    # Register and create env specified in env_creator()
-    env_name = train_config['environment']
-    register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
+    agent = load_agent(train_config, env_creator, PrisonerGuardModel, args.checkpoint)
+
     env = env_creator(env_config)
-
-    # Register a PrisonerGuardModel
-    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], PrisonerGuardModel)
-
-    evaluate_model(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
+    evaluate_model(agent, env, policy_mapping_fn)
 
 
 if __name__ == "__main__":

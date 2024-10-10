@@ -10,11 +10,11 @@ from prisoner_pettingzoo_env.prisoner_env import env_creator
 from ronja.scripts.utils import policy_mapping_fn, load_yaml
 
 
-def train_model(env_config, train_config):
+def train_model(env_config, train_config, env_creator, model, policy_mapping_fn):
     env_name = train_config['environment']
     register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
 
-    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], PrisonerGuardModel)
+    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], model)
     
     ray.init()
 
@@ -66,7 +66,7 @@ def main():
     env_config = load_yaml(args.env)
     train_config = load_yaml(args.train)
     
-    train_model(env_config, train_config)
+    train_model(env_config, train_config, env_creator, PrisonerGuardModel, policy_mapping_fn)
 
 
 if __name__ == "__main__":
