@@ -6,7 +6,12 @@ from pettingzoo import ParallelEnv
 import random
 
 
-class CustomEnvironment(ParallelEnv):
+class PrisonerGuardEnv(ParallelEnv):
+    """The metadata holds environment constants."""
+    metadata = {
+        "name": "prisoner_guard_env_v0",
+    }
+    
     def __init__(self, config):
         """The init method takes in environment arguments from a YAML configuration file.
 
@@ -60,12 +65,8 @@ class CustomEnvironment(ParallelEnv):
 
         # Observations are represented as a flat numpy array
         observations = {
-            "prisoner": {
-                "observation": observation,
-                "action_mask": np.array([0, 1, 1, 0])},
-            "guard": {
-                "observation": observation,
-                "action_mask": np.array([1, 0, 0, 1])},
+            "prisoner": observation,
+            "guard": observation
         }
 
         # Dummy infos (not used in this example)
@@ -99,37 +100,6 @@ class CustomEnvironment(ParallelEnv):
         elif guard_action == 3 and self.guard_y < self.grid_size - 1:
             self.guard_y += 1
 
-        # Generate action masks
-        prisoner_action_mask = np.ones(4, dtype=np.int8)
-        if self.prisoner_x == 0:
-            prisoner_action_mask[0] = 0  # Block left movement
-        elif self.prisoner_x == 6:
-            prisoner_action_mask[1] = 0  # Block right movement
-        if self.prisoner_y == 0:
-            prisoner_action_mask[2] = 0  # Block down movement
-        elif self.prisoner_y == 6:
-            prisoner_action_mask[3] = 0  # Block up movement
-
-        guard_action_mask = np.ones(4, dtype=np.int8)
-        if self.guard_x == 0:
-            guard_action_mask[0] = 0
-        elif self.guard_x == 6:
-            guard_action_mask[1] = 0
-        if self.guard_y == 0:
-            guard_action_mask[2] = 0
-        elif self.guard_y == 6:
-            guard_action_mask[3] = 0
-
-        # Action mask to prevent guard from going over escape cell
-        if self.guard_x - 1 == self.escape_x:
-            guard_action_mask[0] = 0
-        elif self.guard_x + 1 == self.escape_x:
-            guard_action_mask[1] = 0
-        if self.guard_y - 1 == self.escape_y:
-            guard_action_mask[2] = 0
-        elif self.guard_y + 1 == self.escape_y:
-            guard_action_mask[3] = 0
-
         # Check termination conditions
         terminations = {a: False for a in self.agents}
         rewards = {a: 0 for a in self.agents}
@@ -137,7 +107,6 @@ class CustomEnvironment(ParallelEnv):
             print("Guard catches the prisoner!", self.timestep)
             rewards = {"prisoner": -1, "guard": 1}
             terminations = {a: True for a in self.agents}
-
         elif self.prisoner_x == self.escape_x and self.prisoner_y == self.escape_y:
             print("Prisoner escapes!", self.timestep)
             rewards = {"prisoner": 1, "guard": -1}
@@ -161,13 +130,8 @@ class CustomEnvironment(ParallelEnv):
 
         # Get observations as numpy arrays
         observations = {
-            "prisoner": {
-                "observation": observation,
-                "action_mask": prisoner_action_mask,
-            },
-            "guard": {
-                "observation": observation,
-                "action_mask": guard_action_mask},
+            "prisoner": observation,
+            "guard": observation,
         }
 
         # Get dummy infos (not used in this example)
@@ -190,17 +154,14 @@ class CustomEnvironment(ParallelEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         """Define the observation space using Box."""
-        return Dict({
-            'observation': Box(low=0, high=6, shape=(6,), dtype=np.int64),
-            'action_mask': Box(low=0, high=1, shape=(4,), dtype=np.int64)
-        })
+        return Box(low=0, high=6, shape=(6,), dtype=np.int64)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
         """Define the action space as a Discrete space."""
         return Discrete(4)  # 4 possible actions: left, right, up, down
+    
 
-
-def env_creator(env_config):
-    env = CustomEnvironment(env_config)
+def env_creator(config):
+    env = PrisonerGuardEnv(config)
     return env

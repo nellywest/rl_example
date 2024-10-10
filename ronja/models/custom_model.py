@@ -17,7 +17,7 @@ class PrisonerGuardModel(TorchModelV2, nn.Module):
         self.value_fn = nn.Linear(512, 1)
 
     def forward(self, input_dict, state, seq_lens):
-        model_out = self.model(input_dict["obs"]["observation"].float())
+        model_out = self.model(input_dict["obs"].float())
         self._value_out = self.value_fn(model_out)
         return self.policy_fn(model_out), state
 
