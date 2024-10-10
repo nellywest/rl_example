@@ -1,12 +1,12 @@
 import time
 import argparse
-from train import load_yaml, policy_mapping_fn
 from ray.tune import register_env
 from ray.rllib.models import ModelCatalog
 from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 from prisoner_pettingzoo_env.prisoner_env import env_creator
 from ray.rllib.algorithms.ppo import PPO
 from ronja.models.custom_model import PrisonerGuardModel
+from ronja.scripts.utils import policy_mapping_fn, load_yaml
 
 
 def evaluate_model(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):

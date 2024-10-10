@@ -5,18 +5,9 @@ from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray import tune
 from ray.rllib.models import ModelCatalog
-import yaml
 from ronja.models.custom_model import PrisonerGuardModel
 from prisoner_pettingzoo_env.prisoner_env import env_creator
-
-
-def load_yaml(file_path):
-    with open(file_path, 'r') as file:
-        return yaml.safe_load(file)
-
-
-def policy_mapping_fn(agent_id, episode, worker, **kwargs):
-    return f"{agent_id}_policy"
+from ronja.scripts.utils import policy_mapping_fn, load_yaml
 
 
 def train_model(env_config, train_config):
