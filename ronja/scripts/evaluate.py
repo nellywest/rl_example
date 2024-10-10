@@ -6,7 +6,7 @@ from ray.rllib.models import ModelCatalog
 from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 from prisoner_pettingzoo_env.prisoner_env import env_creator
 from ray.rllib.algorithms.ppo import PPO
-from ronja.models.custom_model import CustomModel
+from ronja.models.custom_model import PrisonerGuardModel
 
 
 def evaluate_parallel_env(env, policy_mapping_fn, agent, num_episodes=10, max_steps=100):
@@ -78,7 +78,7 @@ def main():
     register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
     env = env_creator(env_config)
 
-    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
+    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], PrisonerGuardModel)
 
     agent = PPO.from_checkpoint(args.checkpoint)
 

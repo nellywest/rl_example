@@ -6,7 +6,7 @@ from ray.rllib.algorithms.ppo import PPOConfig
 from ray import tune
 from ray.rllib.models import ModelCatalog
 import yaml
-from ronja.models.custom_model import CustomModel
+from ronja.models.custom_model import PrisonerGuardModel
 from prisoner_pettingzoo_env.prisoner_env import env_creator
 
 
@@ -23,7 +23,7 @@ def train_model(env_config, train_config):
     env_name = train_config['environment']
     register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
 
-    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
+    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], PrisonerGuardModel)
     
     ray.init()
 
