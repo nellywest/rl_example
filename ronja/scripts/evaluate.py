@@ -73,14 +73,15 @@ def main():
     
     env_config = load_yaml(args.env)
     train_config = load_yaml(args.train)
-    
+    agent = PPO.from_checkpoint(args.checkpoint)
+
+    # Register and create env specified in env_creator()
     env_name = train_config['environment']
     register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
     env = env_creator(env_config)
 
+    # Register a PrisonerGuardModel
     ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], PrisonerGuardModel)
-
-    agent = PPO.from_checkpoint(args.checkpoint)
 
     evaluate_model(env, policy_mapping_fn, agent, num_episodes=2, max_steps=100)
 
