@@ -5,25 +5,16 @@ from ray.rllib.env.wrappers.pettingzoo_env import ParallelPettingZooEnv
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray import tune
 from ray.rllib.models import ModelCatalog
-import yaml
-from ronja.models.custom_model import CustomModel
+from ronja.models.custom_model import PrisonerGuardModel
 from prisoner_pettingzoo_env.prisoner_env import env_creator
+from ronja.scripts.utils import policy_mapping_fn, load_yaml
 
 
-def load_yaml(file_path):
-    with open(file_path, 'r') as file:
-        return yaml.safe_load(file)
-
-
-def policy_mapping_fn(agent_id, episode, worker, **kwargs):
-    return f"{agent_id}_policy"
-
-
-def train_model(env_config, train_config):
-    # Use the provided train_config directly
+def train_model(env_config, train_config, env_creator, model, policy_mapping_fn):
     env_name = train_config['environment']
-    register_env(env_name, lambda config: ParallelPettingZooEnv(env_creator(config)))
-    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], CustomModel)
+    register_env(env_name, lambda env_config: ParallelPettingZooEnv(env_creator(env_config)))
+
+    ModelCatalog.register_custom_model(train_config['training']['model']['custom_model'], model)
     
     ray.init()
 
@@ -38,14 +29,14 @@ def train_model(env_config, train_config):
             policies={
                 "prisoner_policy": (
                     None,
-                    env_creator({}).observation_space("prisoner"),
-                    env_creator({}).action_space("prisoner"),
+                    env_creator(env_config).observation_space("prisoner"),
+                    env_creator(env_config).action_space("prisoner"),
                     {},
                 ),
                 "guard_policy": (
                     None,
-                    env_creator({}).observation_space("guard"),
-                    env_creator({}).action_space("guard"),
+                    env_creator(env_config).observation_space("guard"),
+                    env_creator(env_config).action_space("guard"),
                     {},
                 ),
             },
@@ -75,7 +66,7 @@ def main():
     env_config = load_yaml(args.env)
     train_config = load_yaml(args.train)
     
-    train_model(env_config, train_config)
+    train_model(env_config, train_config, env_creator, PrisonerGuardModel, policy_mapping_fn)
 
 
 if __name__ == "__main__":
